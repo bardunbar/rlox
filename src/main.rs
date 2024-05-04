@@ -58,5 +58,5 @@ fn run_file(path: &str) -> io::Result<i32>{
 
 fn run(source: String, environment: &mut Environment) {
     let mut scanner = Scanner::new(source);
-    scanner.scan_tokens(&environment);
+    scanner.scan_tokens(environment);
 }
