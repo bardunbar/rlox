@@ -59,15 +59,23 @@ pub enum TokenType {
 #[derive(Debug)]
 struct Object;
 
+#[derive(Debug)]
+pub enum Literal {
+    Identifier(String),
+    String(String),
+    Number(f64),
+    None
+}
+
 pub struct Token {
     token_type: TokenType,
     lexeme: String,
-    literal: Object,
+    literal: Literal,
     line: u32,
 }
 
 impl Token {
-    fn new(token_type: TokenType, lexeme: String, literal: Object, line: u32) -> Self {
+    fn new(token_type: TokenType, lexeme: String, literal: Literal, line: u32) -> Self {
         Token {
             token_type,
             lexeme,
@@ -86,14 +94,36 @@ impl ToString for Token {
 pub struct Scanner {
     source: String,
     tokens: Vec<Token>,
+
+    start: usize,
+    current: usize,
+    line: u32,
 }
 
 impl Scanner {
     pub fn new(source: String) -> Self {
-        Scanner { source: source, tokens: Vec::new() }
+        Scanner { source: source, tokens: Vec::new() , start: 0, current: 0, line: 1 }
     }
 
     pub fn scan_tokens(&mut self, environment: &Environment) {
-        println!("{}", self.source)
+
+        let chars: Vec<_> = self.source.chars().collect();
+        let length = chars.len();
+
+        let mut characters = self.source.chars();
+
+        while self.current < length
+        {
+            self.start = self.current;
+            self.scan_token(&chars);
+        }
+
+        self.tokens.push(Token::new(TokenType::EOF, String::new(), Literal::None, self.line))
+    }
+
+    fn scan_token(&mut self, chars: &Vec<char>) -> bool {
+
+
+        true
     }
 }
