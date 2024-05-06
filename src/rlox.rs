@@ -169,7 +169,13 @@ impl Scanner {
 
             '"' => self.extract_string(environment),
 
-            _ => environment.error(self.line, "Unexpected character."),
+            '0'..='9' => self.extract_number(environment),
+
+            'a'..='z' | 'A'..='Z' | '_' => self.extract_identifier(environment),
+
+            _ => {
+                environment.error(self.line, "Unexpected character.");
+            }
         }
 
         true
@@ -194,6 +200,14 @@ impl Scanner {
         }
     }
 
+    fn peek_next(&self) -> char {
+        if self.current + 1 >= self.chars.len() {
+            '\0'
+        } else {
+            self.chars[self.current + 1]
+        }
+    }
+
     fn extract_string(&mut self, environment: &mut Environment) {
         while self.peek() != '"' && !self.is_at_end() {
             if self.peek() == '\n' { self.line = self.line + 1 }
@@ -206,8 +220,44 @@ impl Scanner {
         }
 
         self.advance();
-        let literal = self.source[self.start..self.current].to_owned();
+
+        // Trim the " from the string
+        let literal = self.source[self.start + 1..self.current - 1].to_owned();
+
         self.add_token(TokenType::String, Literal::String(literal))
+    }
+
+    fn extract_number(&mut self, environment: &mut Environment) {
+        while Scanner::is_digit(&self.peek()) {
+            self.advance();
+        }
+
+        if self.peek() == '.' && Scanner::is_digit(&self.peek_next()) {
+            self.advance();
+
+            while Scanner::is_digit(&self.peek()) {
+                self.advance();
+            }
+        }
+
+        let literal = &self.source[self.start..self.current];
+        let literal_number: f64 = match literal.parse() {
+            Ok(num) => num,
+            Err(_) => {
+                environment.error(self.line, "Unable to parse number");
+                0.0
+            }
+        };
+
+        self.add_token(TokenType::Number, Literal::Number(literal_number))
+    }
+
+    fn extract_identifier(&mut self, environment: &mut Environment) {
+        while Scanner::is_alphanumeric(&self.peek()) {
+            self.advance();
+        }
+
+
     }
 
     fn match_char(&mut self, expected: char) -> bool {
@@ -221,7 +271,23 @@ impl Scanner {
         }
     }
 
+    #[inline]
     fn is_at_end(&self) -> bool {
         self.current < self.chars.len()
+    }
+
+    #[inline]
+    fn is_digit(c: &char) -> bool {
+        *c >= '0' && *c <= '9'
+    }
+
+    #[inline]
+    fn is_alpha(c: &char) -> bool {
+        *c >= 'a' && *c <= 'z' || *c >= 'A' && *c <= 'Z' || *c == '_'
+    }
+
+    #[inline]
+    fn is_alphanumeric(c: &char) -> bool {
+        Scanner::is_alpha(c) || Scanner::is_digit(c)
     }
 }

@@ -4,3 +4,6 @@ https://craftinginterpreters.com
 
 Latest progress has us beginning to work on the scanner class
 https://craftinginterpreters.com/scanning.html#the-scanner-class
+
+5/6/24 - Nearly done with the identifier section in chapter 4
+https://craftinginterpreters.com/scanning.html#reserved-words-and-identifiers
