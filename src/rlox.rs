@@ -1,6 +1,23 @@
 
 
-
+static KEYWORDS: phf::Map<&'static str, TokenType> = phf::phf_map! {
+    "and" =>TokenType::And,
+    "class" =>TokenType::Class,
+    "else" =>TokenType::Else,
+    "false" =>TokenType::False,
+    "for" =>TokenType::For,
+    "fun" =>TokenType::Fun,
+    "if" =>TokenType::If,
+    "nil" =>TokenType::Nil,
+    "or" =>TokenType::Or,
+    "print" =>TokenType::Print,
+    "return" =>TokenType::Return,
+    "super" =>TokenType::Super,
+    "this" =>TokenType::This,
+    "true" =>TokenType::True,
+    "var" =>TokenType::Var,
+    "while" =>TokenType::While,
+};
 
 fn report(line: u32, source: &str, msg: &str) {
     eprintln!("[{}] Error {}: {}", line, source, msg)
@@ -34,7 +51,7 @@ impl Environment {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum TokenType {
     // Single Character Tokens
     LeftParen, RightParen, LeftBrace, RightBrace,
@@ -51,7 +68,7 @@ pub enum TokenType {
 
     // Keywords
     And, Class, Else, False, Fun, For, If, Nil, Or,
-    Print, Return, This, True, Var, While,
+    Print, Return, Super, This, True, Var, While,
 
     EOF,
 }
@@ -67,6 +84,7 @@ pub enum Literal {
     None
 }
 
+#[derive(Debug)]
 pub struct Token {
     token_type: TokenType,
     lexeme: String,
@@ -108,11 +126,6 @@ impl Scanner {
     }
 
     pub fn scan_tokens(&mut self, environment: &mut Environment) {
-
-        // let chars: Vec<_> = self.source.chars().collect();
-        // let length = chars.len();
-
-        // let mut characters = self.source.chars();
 
         while self.current < self.chars.len()
         {
@@ -257,7 +270,13 @@ impl Scanner {
             self.advance();
         }
 
+        let literal_string = &self.source[self.start..self.current];
+        let (token_type, literal) = match KEYWORDS.get(literal_string) {
+            Some(t) => ((*t).clone(), Literal::None),
+            None => (TokenType::Identifier, Literal::Identifier(literal_string.to_owned())),
+        };
 
+        self.add_token(token_type, literal)
     }
 
     fn match_char(&mut self, expected: char) -> bool {
@@ -271,9 +290,15 @@ impl Scanner {
         }
     }
 
+    pub fn debug_print_tokens(&self) {
+        for token in self.tokens.iter() {
+            println!("{:?}", token)
+        }
+    }
+
     #[inline]
     fn is_at_end(&self) -> bool {
-        self.current < self.chars.len()
+        self.current >= self.chars.len()
     }
 
     #[inline]

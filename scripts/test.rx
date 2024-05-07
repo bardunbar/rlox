@@ -1,2 +1,6 @@
 
 var language = "rlox";
+if (language == "rlox")
+{
+    print "Great Success!"
+}

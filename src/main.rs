@@ -13,7 +13,10 @@ fn main() {
         1 => {
             match run_prompt() {
                 Err(e) => { eprintln!("{:?}", e); 63 },
-                Ok(code) => code,
+                Ok(code) => {
+                    println!("RLox signing off!");
+                    code
+                },
             }
         },
         2 => {
@@ -59,4 +62,6 @@ fn run_file(path: &str) -> io::Result<i32>{
 fn run(source: String, environment: &mut Environment) {
     let mut scanner = Scanner::new(source);
     scanner.scan_tokens(environment);
+
+    scanner.debug_print_tokens();
 }
