@@ -10,3 +10,6 @@ https://craftinginterpreters.com/scanning.html#reserved-words-and-identifiers
 
 5/7/24 - We have a working tokenizer!
 https://craftinginterpreters.com/representing-code.html
+
+5/18/24 - Somehow it worked! But the code sure is ugly. We have working expression macros
+https://craftinginterpreters.com/parsing-expressions.html

@@ -3,9 +3,18 @@ use std::fs;
 use std::io;
 
 use rlox::Environment;
+use rlox::Literal;
 use rlox::Scanner;
+use rlox::Token;
+use rlox::TokenType;
+use rlox_expr::Binary;
+use rlox_expr::Expression;
+use rlox_expr::Printer;
+use rlox_expr::Unary;
+use rlox_expr::Visitor;
 
 mod rlox;
+mod rlox_expr;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -30,6 +39,20 @@ fn main() {
             64
         }
     };
+
+    let expr = Expression::Binary(Binary {
+        left: Box::new(Expression::Unary( Unary {
+            operator: Token { token_type: TokenType::Minus, lexeme: "-".to_owned(), literal: Literal::None, line: 1 },
+            right: Box::new(Expression::Literal(rlox_expr::Literal { value: rlox::Literal::Number(1234.0) }))
+        })),
+        right: Box::new(Expression::Grouping(
+            rlox_expr::Grouping { expression: Box::new(Expression::Literal(rlox_expr::Literal { value: rlox::Literal::Number(45.67) })) }
+        )),
+        operator: Token { token_type: TokenType::Star, lexeme: "*".to_owned(), literal: Literal::None, line: 1 }
+    });
+
+    let printer = Printer{};
+    println!("{}", printer.print(&expr));
 
     std::process::exit(exit_code)
 }
@@ -65,3 +88,4 @@ fn run(source: String, environment: &mut Environment) {
 
     scanner.debug_print_tokens();
 }
+
