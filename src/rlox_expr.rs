@@ -1,33 +1,14 @@
 use crate::rlox::Token;
 
-pub trait TestExpr {
-    fn accept<R>(&mut self, visitor: &impl Visitor<R>) -> R;
-}
-
-pub struct TestVisitor;
-
-impl TestExpr for Binary {
-    fn accept<R>(&mut self, visitor: &impl Visitor<R>) -> R {
-        visitor.visit_binary(&self)
-    }
-}
-
-
 pub trait Expr {
     fn accept<R>(&self, visitor: &impl Visitor<R>) -> R;
 }
 
-
-macro_rules! ast {
+macro_rules! define_expression {
     ($expression:ident $(, $name:ident: $type:ty)+) => {
         pub struct $expression {
             $(pub $name: $type),+
         }
-        //impl Expr for $expression {
-            // fn accept<R>(&self, visitor: &impl Visitor<R>) -> R {
-
-            // }
-        //}
     };
 }
 
@@ -49,10 +30,10 @@ macro_rules! impl_expr {
     };
 }
 
-ast!(Binary, left: Box<Expression>, right: Box<Expression>, operator: Token);
-ast!(Unary, operator: Token, right: Box<Expression>);
-ast!(Grouping, expression: Box<Expression>);
-ast!(Literal, value: crate::rlox::Literal);
+define_expression!(Binary, left: Box<Expression>, right: Box<Expression>, operator: Token);
+define_expression!(Unary, operator: Token, right: Box<Expression>);
+define_expression!(Grouping, expression: Box<Expression>);
+define_expression!(Literal, value: crate::rlox::Literal);
 
 pub enum Expression {
     Binary(Binary),
@@ -61,12 +42,23 @@ pub enum Expression {
     Literal(Literal),
 }
 
-pub fn accept_visitor<R>(expression: &Expression, visitor: &impl Visitor<R>) -> R {
-    match expression {
-        Expression::Binary(binary) => binary.accept(visitor),
-        Expression::Grouping(grouping) => grouping.accept(visitor),
-        Expression::Literal(literal) => literal.accept(visitor),
-        Expression::Unary(unary) => unary.accept(visitor),
+impl Expression {
+    pub fn visit<R>(&self, visitor: &impl Visitor<R>) -> R {
+        match self {
+            Expression::Binary(binary) => visitor.visit_binary(binary),
+            Expression::Grouping(grouping) => visitor.visit_grouping(grouping),
+            Expression::Literal(literal) => visitor.visit_literal(literal),
+            Expression::Unary(unary) => visitor.visit_unary(unary),
+        }
+    }
+
+    pub fn accept<R>(&self, visitor: &impl Visitor<R>) -> R {
+        match self {
+            Expression::Binary(binary) => binary.accept(visitor),
+            Expression::Grouping(grouping) => grouping.accept(visitor),
+            Expression::Literal(literal) => literal.accept(visitor),
+            Expression::Unary(unary) => unary.accept(visitor),
+        }
     }
 }
 
@@ -82,42 +74,22 @@ visitor!(
     visit_literal, Literal,
 );
 
-macro_rules! match_expression {
-    ($expression:ident, $binary:block, $grouping:block, $literal:block, $unary:block) => {
-        match $expression {
-            Expression::Binary(binary) => $binary,
-            Expression::Grouping(grouping) => $grouping
-            Expression::Literal(literal) => $literal
-            Expression::Unary(unary) => $unary
-        }
-    };
-}
-
 pub struct Printer {}
 
 impl Printer {
     pub fn print(&self, expression: &Expression) -> String {
-        match expression {
-            Expression::Binary(binary) => self.visit_binary(binary),
-            Expression::Grouping(grouping) => self.visit_grouping(grouping),
-            Expression::Literal(literal) => self.visit_literal(literal),
-            Expression::Unary(unary) => self.visit_unary(unary),
-        }
-        // match_expression!(expression,
-        //     { self.visit_binary(binary) },
-        //     { self.visit_grouping(grouping) },
-        //     { self.visit_literal(literal) },
-        //     { self.visit_unary(unary) })
+        expression.visit(self)
     }
 }
 
 impl Visitor<String> for Printer {
     fn visit_binary(&self, expression: &Binary) -> String {
-        format!("({} {} {})", expression.operator.lexeme, accept_visitor(expression.left.as_ref(), self), accept_visitor(expression.right.as_ref(), self))
+        format!("({} {} {})", expression.operator.lexeme, expression.left.accept(self), expression.right.accept(self))
     }
 
     fn visit_grouping(&self, expression: &Grouping) -> String {
-        format!("(group {})", accept_visitor(expression.expression.as_ref(), self))
+        format!("(group {})", expression.expression.accept(self))
+
     }
 
     fn visit_literal(&self, expression: &Literal) -> String {
@@ -130,7 +102,6 @@ impl Visitor<String> for Printer {
     }
 
     fn visit_unary(&self, expression: &Unary) -> String {
-        format!("({} {})", expression.operator.lexeme, accept_visitor(expression.right.as_ref(), self))
-
+        format!("({} {})", expression.operator.lexeme, expression.right.accept(self))
     }
 }

@@ -11,10 +11,10 @@ use rlox_expr::Binary;
 use rlox_expr::Expression;
 use rlox_expr::Printer;
 use rlox_expr::Unary;
-use rlox_expr::Visitor;
 
 mod rlox;
 mod rlox_expr;
+mod rlox_parser;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

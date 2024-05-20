@@ -13,3 +13,6 @@ https://craftinginterpreters.com/representing-code.html
 
 5/18/24 - Somehow it worked! But the code sure is ugly. We have working expression macros
 https://craftinginterpreters.com/parsing-expressions.html
+
+5/20/24 - Working on the parser class
+https://craftinginterpreters.com/parsing-expressions.html#the-parser-class
