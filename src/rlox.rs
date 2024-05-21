@@ -51,7 +51,7 @@ impl Environment {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TokenType {
     // Single Character Tokens
     LeftParen, RightParen, LeftBrace, RightBrace,
@@ -76,7 +76,7 @@ pub enum TokenType {
 #[derive(Debug)]
 struct Object;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Literal {
     Identifier(String),
     String(String),
@@ -84,7 +84,7 @@ pub enum Literal {
     None
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,

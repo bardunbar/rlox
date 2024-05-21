@@ -4,3 +4,4 @@ if (language == "rlox")
 {
     print "Great Success!"
 }
+var test = true;
